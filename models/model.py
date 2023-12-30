@@ -43,9 +43,16 @@ class Model(nn.Module):
                                                num_residual_hiddens)
 
     def forward(self, x):
-        z = self._encoder(x)
-        z = self._pre_vq_conv(z)
-        loss, quantized, perplexity, _ = self._vq_vae(z)
-        x_recon = self._decoder(quantized)
+        z_rgb = self._rgb_encoder(x)
+        z_thermal = self._thermal_encoder(x)
 
-        return loss, x_recon, perplexity
+        z = z_rgb + z_thermal
+
+        z = self._pre_vq_conv(z)
+
+        loss, quantized, perplexity, _ = self._vq_vae(z)
+
+        x_rgb_recon = self._rgb_decoder(quantized)
+        x_thermal_recon = self._thermal_decoder(quantized)
+
+        return loss, x_rgb_recon, x_thermal_recon, perplexity
