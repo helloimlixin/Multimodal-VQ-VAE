@@ -5,16 +5,15 @@
 #  Vestibulum commodo. Ut rhoncus gravida arcu.
 
 from torch import nn
-
-from models.decoder import RGBDecoder, ThermalDecoder
 from models.encoder import RGBEncoder, ThermalEncoder
+from models.decoder import RGBDecoder, ThermalDecoder
 from models.vector_quantizer import VectorQuantizer
 
 
-class Model(nn.Module):
+class MultimodalVQVAE(nn.Module):
     def __init__(self, num_hiddens, num_residual_layers, num_residual_hiddens,
-                 num_embeddings, embedding_dim, commitment_cost, decay=0):
-        super(Model, self).__init__()
+                 num_embeddings, embedding_dim, commitment_cost):
+        super(MultimodalVQVAE, self).__init__()
 
         self._rgb_encoder = RGBEncoder(3, num_hiddens,
                                        num_residual_layers,
@@ -43,8 +42,8 @@ class Model(nn.Module):
                                                num_residual_hiddens)
 
     def forward(self, x):
-        z_rgb = self._rgb_encoder(x)
-        z_thermal = self._thermal_encoder(x)
+        z_rgb = self._rgb_encoder(x[0])
+        z_thermal = self._thermal_encoder(x[1])
 
         z = z_rgb + z_thermal
 

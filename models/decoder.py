@@ -1,11 +1,17 @@
-from helpers import ResidualStack
+#  Copyright (c) 2023. Lorem ipsum dolor sit amet, consectetur adipiscing elit.
+#  Morbi non lorem porttitor neque feugiat blandit. Ut vitae ipsum eget quam lacinia accumsan.
+#  Etiam sed turpis ac ipsum condimentum fringilla. Maecenas magna.
+#  Proin dapibus sapien vel ante. Aliquam erat volutpat. Pellentesque sagittis ligula eget metus.
+#  Vestibulum commodo. Ut rhoncus gravida arcu.
+
+from .helpers import ResidualStack
 from torch.nn import functional as F
 import torch.nn as nn
 
 
 class RGBDecoder(nn.Module):
     def __init__(self, in_channels, num_hiddens, num_residual_layers, num_residual_hiddens):
-        super(RGBDecoder).__init__()
+        super(RGBDecoder, self).__init__()
 
         self._conv_1 = nn.Conv2d(in_channels=in_channels,
                                  out_channels=num_hiddens,
@@ -33,7 +39,7 @@ class RGBDecoder(nn.Module):
     def forward(self, inputs):
         x = self._conv_1(inputs)
         x = self._residual_stack(x)
-        x = self._conv_trans_1
+        x = self._conv_trans_1(x)
         x = F.relu(x)
 
         return self._conv_trans_2(x)
@@ -61,7 +67,7 @@ class ThermalDecoder(nn.Module):
                                                 padding=1)
 
         self._conv_trans_2 = nn.ConvTranspose2d(in_channels=num_hiddens // 2,
-                                                out_channels=3,
+                                                out_channels=1,
                                                 kernel_size=4,
                                                 stride=2,
                                                 padding=1)
@@ -69,7 +75,7 @@ class ThermalDecoder(nn.Module):
     def forward(self, inputs):
         x = self._conv_1(inputs)
         x = self._residual_stack(x)
-        x = self._conv_trans_1
+        x = self._conv_trans_1(x)
         x = F.relu(x)
 
         return self._conv_trans_2(x)

@@ -21,7 +21,6 @@ class FLIRDataset(Dataset):
         self.thermal_imgs_train = os.listdir(os.path.join(self.root_dir, 'images_thermal_train'))
         self.rgb_imgs_train.sort()
         self.thermal_imgs_train.sort()
-
         self.rgb_imgs_val = os.listdir(os.path.join(self.root_dir, 'images_rgb_val'))
         self.thermal_imgs_val = os.listdir(os.path.join(self.root_dir, 'images_thermal_val'))
         self.rgb_imgs_val.sort()
@@ -39,8 +38,8 @@ class FLIRDataset(Dataset):
             rgb_img_path = os.path.join(self.root_dir, 'images_rgb_train', self.rgb_imgs_train[idx])
             thermal_img_path = os.path.join(self.root_dir, 'images_thermal_train', self.thermal_imgs_train[idx])
         else:
-            rgb_img_path = os.path.join(self.root_dir, self.rgb_imgs_val[idx])
-            thermal_img_path = os.path.join(self.root_dir, self.thermal_imgs_val[idx])
+            rgb_img_path = os.path.join(self.root_dir, 'images_rgb_val', self.rgb_imgs_val[idx])
+            thermal_img_path = os.path.join(self.root_dir, 'images_thermal_val', self.thermal_imgs_val[idx])
 
         rgb_img = read_image(rgb_img_path)
         thermal_img = read_image(thermal_img_path)
@@ -51,5 +50,5 @@ class FLIRDataset(Dataset):
             rgb_img = self.transform(rgb_img)
             thermal_img = self.transform(thermal_img)
 
-        return {'rgb_image': rgb_img, 'thermal_image': thermal_img}
+        return rgb_img, thermal_img
 
