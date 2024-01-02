@@ -5,9 +5,14 @@ from datasets.FLIRDataset import FLIRDataset
 from torch.utils.data import DataLoader
 import torch.nn.functional as F
 from models.mvqvae import MultimodalVQVAE
+from torchvision.transforms import ColorJitter
+from torchvision.transforms.functional import adjust_brightness
+from torch.utils.tensorboard import SummaryWriter
+import matplotlib.pyplot as plt
+import time
 
 batch_size = 8
-num_training_updates = 10000
+num_training_updates = 100000
 
 num_hiddens = 128
 num_residual_hiddens = 32
@@ -37,9 +42,15 @@ def train():
     # 4. Train the model
     optimizer = torch.optim.Adam(model.parameters(), lr=learning_rate, amsgrad=False)
 
-    model.train()
+    # Load pretrained model
+    # model.load_state_dict(torch.load('checkpoints/model_20000.pth'))
+
     train_res_recon_error = []
     train_res_perplexity = []
+
+    writer = SummaryWriter()
+
+    model.train()
 
     for i in xrange(num_training_updates):
         rgb_img, thermal_img = next(iter(flir_dataloader))
@@ -47,7 +58,7 @@ def train():
         thermal_img = thermal_img.to(device)
         optimizer.zero_grad()
 
-        vq_loss, rgb_recon, thermal_recon, perplexity = model([rgb_img, thermal_img])
+        vq_loss, rgb_recon, thermal_recon, perplexity = model([adjust_brightness(rgb_img, 0.5), thermal_img])
 
         # 5. Evaluate the model
         rgb_recon_error = F.mse_loss(rgb_recon, rgb_img)
@@ -62,17 +73,21 @@ def train():
 
         train_res_recon_error.append(recon_error.item())
         train_res_perplexity.append(perplexity.item())
+        writer.add_scalar('Train/Recon Error', recon_error.item(), i)
+        writer.add_scalar('Train/Perplexity', perplexity.item(), i)
 
         if (i + 1) % 100 == 0:
             print('%d iterations' % (i + 1))
-            print('recon_error: %.3f' % np.mean(train_res_recon_error[-100:]))
-            print('perplexity: %.3f' % np.mean(train_res_perplexity[-100:]))
+            print('recon_error: %.4f' % np.mean(train_res_recon_error[-100:]))
+            print('perplexity: %.4f' % np.mean(train_res_perplexity[-100:]))
             print()
 
         # 6. Save the model
         if (i + 1) % 1000 == 0:
-            torch.save(model.state_dict(), 'checkpoints/model_%d.pth' % (i + 1))
+            torch.save(model.state_dict(), 'checkpoints/nightvision/model_%d.pth' % (i + 1))
 
 
 if __name__ == '__main__':
+    start = time.time()
     train()
+    print('Training time: %.2f' % (time.time() - start))

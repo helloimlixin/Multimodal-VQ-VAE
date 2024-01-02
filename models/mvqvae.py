@@ -7,7 +7,7 @@
 from torch import nn
 from models.encoder import RGBEncoder, ThermalEncoder
 from models.decoder import RGBDecoder, ThermalDecoder
-from models.vector_quantizer import VectorQuantizer
+from models.vector_quantizer import VectorQuantizer, VectorQuantizerEMA
 
 
 class MultimodalVQVAE(nn.Module):
@@ -27,9 +27,14 @@ class MultimodalVQVAE(nn.Module):
                                       kernel_size=1,
                                       stride=1)
 
-        self._vq_vae = VectorQuantizer(num_embeddings,
-                                       embedding_dim,
-                                       commitment_cost)
+        # self._vq_vae = VectorQuantizer(num_embeddings,
+        #                                embedding_dim,
+        #                                commitment_cost)
+
+        self._vq_vae = VectorQuantizerEMA(num_embeddings,
+                                          embedding_dim,
+                                          commitment_cost,
+                                          decay=0.99)
 
         self._rgb_decoder = RGBDecoder(embedding_dim,
                                        num_hiddens,
